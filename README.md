@@ -1,17 +1,43 @@
-# news_app_clean_arch
+# Daily News - Flutter Clean Architecture Uygulaması
 
-A new Flutter project.
+Modern Flutter geliştirme standartlarına uygun olarak tasarlanmış, **Clean Architecture** prensipleri ve **Riverpod** durum yönetimi kullanılarak geliştirilmiş modern bir haber uygulaması.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🚀 Proje Hakkında
 
-A few resources to get you started if this is your first Flutter project:
+Bu proje; güncel haberleri NewsAPI üzerinden dinamik olarak çeken, katmanlı mimari yaklaşımıyla yazılmış ve kullanıcı dostu arayüze sahip profesyonel bir mobil/masaüstü istemcisidir.
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+### ✨ Temel Özellikler
+* **Clean Architecture (Temiz Mimari):** Veri (Data), İş Mantığı (Domain) ve Arayüz (Presentation) katmanlarının birbirinden tamamen ayrıldığı modüler yapı.
+* **State Management (Durum Yönetimi):** Reaktif ve hatasız bir veri akışı için modern **Riverpod** entegrasyonu.
+* **Harici API Entegrasyonu:** NewsAPI üzerinden anlık başlıkların ve görsellerin çekilmesi.
+* **Güvenli Dış Bağlantı (`url_launcher`):** Kullanıcıların haber kartlarına tıklayarak ilgili haberi doğrudan tarayıcılarda orijinal kaynağında görüntüleyebilmesi.
+* **Hata Yönetimi (Error Handling):** Görsel yüklenme hatalarında veya eksik veri durumlarında uygulamanın çökmesini önleyen kullanıcı dostu yedek (`fallback`) mekanizmaları.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+---
+
+## 🛠️ Kullanılan Teknolojiler ve Paketler
+
+* **Flutter & Dart**
+* **`flutter_riverpod`** - Reaktif durum yönetimi
+* **`http`** - Ağ istekleri ve REST API iletişimi
+* **`url_launcher`** - Web linklerini harici tarayıcıda açma
+* **`equatable`** - Nesne karşılaştırmalarında performans optimizasyonu
+
+---
+
+## 📂 Mimari Yapı (Clean Architecture)
+
+Proje klasör hiyerarşisi sorumluluklarına göre şu şekilde ayrılmıştır:
+
+```text
+lib/
+├── core/                  # Sabitler, genel kaynaklar ve veri durum yönetimi (DataState)
+└── features/
+    └── daily_news/
+        ├── data/          # Modeller, Remote Data Source ve Repository implementasyonları
+        ├── domain/        # Entity'ler, Repository sözleşmeleri (interfaces) ve UseCase'ler
+        └── presentation/  # Ekranlar (Screens), Widget'lar ve Provider sağlayıcıları
+
+main.dart                  # Uygulama başlangıç noktası
