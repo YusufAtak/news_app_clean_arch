@@ -19,6 +19,7 @@ class ArticleEntity extends Equatable {
     required this.content,
   });
 
+
   @override
   List<Object?> get props => [
         title,

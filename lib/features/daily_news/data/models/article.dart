@@ -1,4 +1,4 @@
-import 'package:news_app_clean_arch/features/daily_news/domain/entities/article.dart';
+import 'package:news_app_clean_arch/features/daily_news/domain/entitites/article.dart';
 
 class ArticleModel extends ArticleEntity {
   const ArticleModel({
@@ -21,3 +21,4 @@ class ArticleModel extends ArticleEntity {
     );
   }
 }
+  
