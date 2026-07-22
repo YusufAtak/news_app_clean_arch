@@ -3,101 +3,205 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:news_app_clean_arch/core/resources/data_state.dart';
 import 'package:news_app_clean_arch/features/daily_news/presentation/providers/article_providers.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:news_app_clean_arch/features/daily_news/domain/entitites/article.dart';
+
 
 class DailyNews extends ConsumerWidget {
   const DailyNews({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-  
-    final articleState = ref.watch(articleListProvider);
-
+    final articlesState = ref.watch(articleListProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daily News'),
+      backgroundColor: const Color(0xFFF8F9FA), // Tasarımdaki çok açık mavi/gri arka plan
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Karşılama ve Profil Alanı
+              _buildHeader(),
+              const SizedBox(height: 24),
+              
+              // 2. Arama Çubuğu
+              _buildSearchBar(),
+              const SizedBox(height: 32),
+              
+              // 3. Öne Çıkanlar Başlığı
+              _buildSectionTitle('Öne Çıkanlar', 'Tümünü Görüntüle'),
+              const SizedBox(height: 16),
+              
+              // 4. Öne Çıkan Kartlar (Geçici Yer Tutucu)
+        
+            ],
+          ),
+        ),
       ),
-      body: articleState.when(
-        data: (dataState) {
+    );
+  }
 
-          if (dataState is DataFailure) {
-            return Center(child: Text('API Hatası: ${dataState.error}'));
-          }
+  // --- WIDGET METOTLARI ---
 
-          if (dataState is DataSuccess && dataState.data != null) {
-            final articles = dataState.data!; 
-            
-            return ListView.builder(
-  itemCount: articles.length,
-  itemBuilder: (context, index) {
-    final article = articles[index];
-    
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: const [
+            Text(
+              'Merhaba,Kullanıcı!',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Keşfet\nDünya Haberleri',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                height: 1.2,
+              ),
+            ),
+          ],
+        ),
+        const CircleAvatar(
+          radius: 20,
+          backgroundImage: NetworkImage('https://static.vecteezy.com/system/resources/previews/024/983/914/non_2x/simple-user-default-icon-free-png.png'), // Geçici profil resmi
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSearchBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
             spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(10),
-        leading: article.urlToImage != null && article.urlToImage!.isNotEmpty
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  article.urlToImage!,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const Icon(Icons.image_not_supported, size: 50),
-                ),
-              )
-            : Container(width: 80, height: 80, color: Colors.grey),
-        // Haber başlığı
-        title: Text(
-          article.title ?? 'Başlık Yok',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+      child: const TextField(
+        decoration: InputDecoration(
+          hintText: 'Arama yap...',
+          hintStyle: TextStyle(color: Colors.grey),
+          prefixIcon: Icon(Icons.search, color: Colors.grey),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
-        // Yazar bilgisi
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6.0),
-          child: Text(
-            article.author ?? 'Bilinmeyen Yazar',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.grey[600], fontSize: 12),
-          ),
-        ),
-        // 2. Adım: Habere Tıklayınca Detay Sayfasına Gitme
-        onTap: () async {
-  if (article.url != null) {
-    final Uri url = Uri.parse(article.url!);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      throw Exception('Haber URL adresi açılamadı: $url');
-    }
-  }
-},
-        
       ),
     );
-  },
+  }
+
+  Widget _buildSectionTitle(String title, String actionText) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        Text(
+          actionText,
+          style: const TextStyle(fontSize: 14, color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+Widget _buildFeaturedNewsList(List<ArticleEntity> articles) {
+return SizedBox(
+  height: 250,
+  child: ListView.builder(
+    scrollDirection: Axis.horizontal,
+    physics: const BouncingScrollPhysics(),
+    itemCount: articles.length,
+    itemBuilder: (context, index) {
+      final article = articles[index];
+      return _buildFeaturedNewsCard(article);
+    },
+  ),
 );
-          }
+}
+Widget _buildFeaturedNewsCard(ArticleEntity article) { // <-- Artık Article parametresi alıyor
+    return Container(
+      width: 180,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        image: DecorationImage(
+          // API'den gelen gerçek resmi ekliyoruz. Eğer resim yoksa (null) varsayılan bir görsel koyuyoruz.
+          image: NetworkImage(article.urlToImage ?? 'https://picsum.photos/400/500'), 
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Gradient (Gölge) Katmanı
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: [
+                  Colors.black.withOpacity(0.0),
+                  Colors.black.withOpacity(0.8),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
+          ),
           
-          return const Center(child: Text('Gösterilecek haber bulunamadı.'));
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-  
-        error: (error, stackTrace) => Center(child: Text('Error: $error')),
+          // Yazı Katmanı
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                // Etiket
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blueAccent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'News', 
+                    style: TextStyle(
+                      color: Colors.white, 
+                      fontSize: 10, 
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                
+                // GERÇEK HABER BAŞLIĞI BURADA!
+                Text(
+                  article.title ?? 'Başlık bulunamadı', // API'den gelen başlık
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                  ),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
+
 }
