@@ -3,8 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:news_app_clean_arch/features/daily_news/data/models/article.dart';
 
 abstract class ArticleRemoteDataSource {
- @override
-  Future<List<ArticleModel>> getNewsArticles() async {
+ Future<List<ArticleModel>> getNewsArticles() async {
     print('1. API İSTEĞİ BAŞLATILDI...');
     
     final uri = Uri.parse('https://newsapi.org/v2/top-headlines?country=us&apiKey=258982adaa384351b9d306dc389ecb70');

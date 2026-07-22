@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:news_app_clean_arch/core/resources/data_state.dart';
 import 'package:news_app_clean_arch/features/daily_news/presentation/providers/article_providers.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:news_app_clean_arch/features/daily_news/domain/entitites/article.dart';
+import 'package:news_app_clean_arch/features/daily_news/presentation/pages/home/all_news_screen.dart';
 
 class DailyNews extends ConsumerWidget {
   const DailyNews({super.key});
@@ -13,44 +13,31 @@ class DailyNews extends ConsumerWidget {
     final articlesState = ref.watch(articleListProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA), // Tasarıma uygun hafif gri/beyaz arka plan
+      backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Üst Kısım (Kullanıcı Bilgisi ve Başlık)
               _buildHeader(),
-              const SizedBox(height: 24),
-
-              // 2. Arama Çubuğu
+              const SizedBox(height: 20),
               _buildSearchBar(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              _buildSectionTitle(context, 'Öne Çıkanlar', 'Tümünü Görüntüle'),
+              const SizedBox(height: 12),
 
-              // 3. Bölüm Başlığı (Öne Çıkanlar)
-              _buildSectionTitle('Öne Çıkanlar', 'Tümünü Görüntüle'),
-              const SizedBox(height: 16),
-
-              // 4. Haberler Listesi (Riverpod State Kontrolü Burada Yapılıyor)
-              articlesState.when(
-                data: (articles) {
-                  if (articles.isEmpty) {
-                    return const SizedBox(
-                      height: 250,
-                      child: Center(child: Text('Gösterilecek haber bulunamadı.')),
-                    );
-                  }
-                  // Veri varsa orijinal yatay listeni çiziyoruz
-                  return _buildFeaturedNewsList(articles);
-                },
-                loading: () => const SizedBox(
-                  height: 250,
-                  child: Center(child: CircularProgressIndicator()),
-                ),
-                error: (error, stack) => SizedBox(
-                  height: 250,
-                  child: Center(child: Text('Hata oluştu: $error')),
+              // ESNEK YAPI (Expanded kullanarak ekranın geri kalanına göre esremesini sağlıyoruz)
+              Expanded(
+                child: articlesState.when(
+                  data: (articles) {
+                    if (articles.isEmpty) {
+                      return const Center(child: Text('Gösterilecek haber bulunamadı.'));
+                    }
+                    return _buildFeaturedNewsList(articles);
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => Center(child: Text('Hata oluştu: $error')),
                 ),
               ),
             ],
@@ -120,7 +107,7 @@ class DailyNews extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title, String actionText) {
+  Widget _buildSectionTitle(BuildContext context, String title, String actionText) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -128,27 +115,38 @@ class DailyNews extends ConsumerWidget {
           title,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        Text(
-          actionText,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+        GestureDetector(
+          onTap: () {
+            // Tıklandığında yeni sayfaya geçiş yapıyoruz!
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AllNewsScreen(), // Yeni oluşturduğumuz sayfa
+              ),
+            );
+          },
+          child: Text(
+            actionText,
+            style: const TextStyle(
+              fontSize: 14, 
+              color: Colors.blueAccent, // Tıklanabilir olduğunu belli etmek için mavi yaptık
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
       ],
     );
   }
 
   Widget _buildFeaturedNewsList(List<ArticleEntity> articles) {
-    return SizedBox(
-      height: 250,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: articles.length,
-        itemBuilder: (context, index) {
-          final article = articles[index];
-          // Tıklama işlemi için context'i de gönderiyoruz
-          return _buildFeaturedNewsCard(context, article);
-        },
-      ),
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      itemCount: articles.length,
+      itemBuilder: (context, index) { //context konum bilgisini verir.
+        final article = articles[index];
+        return _buildFeaturedNewsCard(context, article);
+      },
     );
   }
 
@@ -159,19 +157,21 @@ class DailyNews extends ConsumerWidget {
         final url = article.url;
         if (url != null && url.isNotEmpty) {
           final uri = Uri.parse(url);
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication); // Haberi dış tarayıcıda açar
-          } else {
+          try{
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+          catch (e) {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Haber linki açılamadı!')),
+                const SnackBar(content: Text('Haber açılırken bir hata oluştu.')),
               );
             }
-          }
+            }
         }
       },
       child: Container(
-        width: 180,
+        width: 200,
+        height: 260,
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -225,7 +225,8 @@ class DailyNews extends ConsumerWidget {
                   const SizedBox(height: 8),
 
                   // Gerçek Haber Başlığı
-                  Text(
+                  Expanded(
+                    child: Text(
                     article.title ?? 'Başlık bulunamadı',
                     style: const TextStyle(
                       color: Colors.white,
@@ -236,6 +237,7 @@ class DailyNews extends ConsumerWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis, // Sığmazsa 3 nokta koyar
                   ),
+                  )
                 ],
               ),
             ),
