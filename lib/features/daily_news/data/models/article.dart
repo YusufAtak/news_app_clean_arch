@@ -2,23 +2,24 @@ import 'package:news_app_clean_arch/features/daily_news/domain/entitites/article
 
 class ArticleModel extends ArticleEntity {
   const ArticleModel({
-    required super.title,
-    required super.description,
-    required super.url,
-    required super.urlToImage,
-    required super.publishedAt, required super.author, required super.content,
+    super.author,
+    super.title,
+    super.description,
+    super.url,
+    super.urlToImage,
+    super.publishedAt,
+    super.content,
   });
 
   factory ArticleModel.fromJson(Map<String, dynamic> json) {
     return ArticleModel(
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      url: json['url'] ?? '',
-      urlToImage: json['urlToImage'] ?? '',
-      publishedAt: DateTime.parse(json['publishedAt']),
-      author: json['author'] ?? '',
-      content: json['content'] ?? '',
+      title: json['title'] as String? ?? '',
+      author: json['author'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      url: json['url'] as String? ?? '',
+      urlToImage: json['urlToImage'] as String? ?? '',
+      publishedAt: json['publishedAt'] as String? ?? '',
+      content: json['content'] as String? ?? '',
     );
   }
 }
-  

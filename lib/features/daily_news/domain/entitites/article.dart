@@ -1,24 +1,23 @@
 import 'package:equatable/equatable.dart';
 
 class ArticleEntity extends Equatable {
-  final String title;
-  final String author;
-  final String description;
-  final String url;
-  final String urlToImage;
-  final DateTime publishedAt;
-  final String content;
+  final String? title;
+  final String? author;
+  final String? description;
+  final String? url;
+  final String? urlToImage;
+  final String? publishedAt; // Tarihi String olarak tutmak UI'da biçimlendirmeyi kolaylaştırır
+  final String? content;
 
   const ArticleEntity({
-    required this.title,
-    required this.author,
-    required this.description,
-    required this.url,
-    required this.urlToImage,
-    required this.publishedAt,
-    required this.content,
+    this.title,
+    this.author,
+    this.description,
+    this.url,
+    this.urlToImage,
+    this.publishedAt,
+    this.content,
   });
-
 
   @override
   List<Object?> get props => [
